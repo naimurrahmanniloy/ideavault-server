@@ -29,6 +29,11 @@ async function run() {
       const result = await ideavaultCollection.insertOne(ideaData);
       res.send(result);
     });
+    app.get("/ideas", async (req, res) => {
+      const ideas = await ideavaultCollection.find().toArray();
+      res.send(ideas);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!",

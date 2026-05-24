@@ -40,6 +40,16 @@ async function run() {
       res.send(idea);
     });
 
+    app.patch("/ideas/:id", async (req, res) => {
+      const id = req.params;
+      const updateData = req.body;
+      const result = await ideavaultCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updateData },
+      );
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!",

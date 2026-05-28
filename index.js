@@ -23,6 +23,7 @@ async function run() {
 
     const db = client.db("ideavault");
     const ideavaultCollection = db.collection("ideas");
+    const commentCollection = db.collection("comments");
 
     app.post("/ideas", async (req, res) => {
       const ideaData = req.body;
@@ -39,7 +40,6 @@ async function run() {
       const idea = await ideavaultCollection.findOne({ _id: new ObjectId(id) });
       res.send(idea);
     });
-
     app.patch("/ideas/:id", async (req, res) => {
       const id = req.params;
       const updateData = req.body;
@@ -48,6 +48,32 @@ async function run() {
         { $set: updateData },
       );
       res.send(result);
+    });
+
+    app.post("/comments", async (req, res) => {
+      try {
+        const commentData = req.body;
+
+        const result = await commentCollection.insertOne(commentData);
+
+        res.send(result);
+      } catch (error) {
+        console.log(error);
+        res.status(500).send({ error: "Failed to post comment" });
+      }
+    });
+    app.get("/comments", async (req, res) => {
+      try {
+        const comments = await commentCollection.find().toArray();
+
+        res.send(comments);
+      } catch (error) {
+        console.log(error);
+
+        res.status(500).send({
+          message: "Failed to get comments",
+        });
+      }
     });
 
     await client.db("admin").command({ ping: 1 });

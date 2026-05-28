@@ -19,7 +19,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
 
     const db = client.db("ideavault");
     const ideavaultCollection = db.collection("ideas");
@@ -49,7 +49,21 @@ async function run() {
       );
       res.send(result);
     });
+    // Express route or Next.js Route Handler (/api/ideas/trending)
+    app.get("/ideas", async (req, res) => {
+      try {
+        // Database theke tracking query run hobe ebong shudhu 3 ta return korbe
+        const trendingIdeas = await Idea.find({ isTrending: true }) // condition thakle dibe, nahole khali find()
+          .sort({ createdAt: -1 }) // (Optional) Newest items age anar jonno
+          .limit(3); // <--- Ei line ti MongoDB theke strictly 3 ta data fetch korbe
 
+        res.status(200).json(trendingIdeas);
+      } catch (error) {
+        res
+          .status(500)
+          .json({ message: "Data fetch korte somossa hoyeche", error });
+      }
+    });
     app.post("/comments", async (req, res) => {
       try {
         const commentData = req.body;
@@ -76,7 +90,7 @@ async function run() {
       }
     });
 
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!",
     );

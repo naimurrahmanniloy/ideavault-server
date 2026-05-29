@@ -36,12 +36,12 @@ async function run() {
     });
 
     app.get("/ideas/:id", async (req, res) => {
-      const id = req.params;
+      const id = req.params.id;
       const idea = await ideavaultCollection.findOne({ _id: new ObjectId(id) });
       res.send(idea);
     });
     app.patch("/ideas/:id", async (req, res) => {
-      const id = req.params;
+      const id = req.params.id;
       const updateData = req.body;
       const result = await ideavaultCollection.updateOne(
         { _id: new ObjectId(id) },
@@ -49,18 +49,19 @@ async function run() {
       );
       res.send(result);
     });
-
-    app.get("/ideas", async (req, res) => {
+    app.get("/trending-ideas", async (req, res) => {
       try {
-        const trendingIdeas = await Idea.find({ isTrending: true })
+        const trendingIdeas = await ideavaultCollection
+          .find({ isTrending: true })
           .sort({ createdAt: -1 })
-          .limit(3);
+          .limit(3)
+          .toArray();
 
-        res.status(200).json(trendingIdeas);
+        res.send(trendingIdeas);
       } catch (error) {
-        res
-          .status(500)
-          .json({ message: "Data fetch korte somossa hoyeche", error });
+        res.status(500).send({
+          message: "Failed to fetch trending ideas",
+        });
       }
     });
     app.post("/comments", async (req, res) => {

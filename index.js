@@ -6,7 +6,16 @@ dotenv.config();
 const uri = process.env.MONGODB_URI;
 const app = express();
 const port = process.env.PORT;
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "https://ideavault-client-tau.vercel.app",
+    ],
+    methods: ["GET", "POST", "PATCH", "DELETE"],
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 const client = new MongoClient(uri, {

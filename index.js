@@ -49,13 +49,12 @@ async function run() {
       );
       res.send(result);
     });
-    // Express route or Next.js Route Handler (/api/ideas/trending)
+
     app.get("/ideas", async (req, res) => {
       try {
-        // Database theke tracking query run hobe ebong shudhu 3 ta return korbe
-        const trendingIdeas = await Idea.find({ isTrending: true }) // condition thakle dibe, nahole khali find()
-          .sort({ createdAt: -1 }) // (Optional) Newest items age anar jonno
-          .limit(3); // <--- Ei line ti MongoDB theke strictly 3 ta data fetch korbe
+        const trendingIdeas = await Idea.find({ isTrending: true })
+          .sort({ createdAt: -1 })
+          .limit(3);
 
         res.status(200).json(trendingIdeas);
       } catch (error) {

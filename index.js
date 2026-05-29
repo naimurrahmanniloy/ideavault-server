@@ -2,10 +2,12 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+
 dotenv.config();
-const uri = process.env.MONGODB_URI;
+
 const app = express();
-const port = process.env.PORT;
+const port = process.env.PORT || 5000;
+
 app.use(
   cors({
     origin: [
@@ -13,10 +15,12 @@ app.use(
       "https://ideavault-client-tau.vercel.app",
     ],
     methods: ["GET", "POST", "PATCH", "DELETE"],
-    credentials: true,
   }),
 );
+
 app.use(express.json());
+
+const uri = process.env.MONGODB_URI;
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -28,103 +32,61 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // await client.connect();
+    await client.connect();
 
     const db = client.db("ideavault");
-    const ideavaultCollection = db.collection("ideas");
-    const commentCollection = db.collection("comments");
 
-    app.post("/ideas", async (req, res) => {
-      const ideaData = req.body;
-      const result = await ideavaultCollection.insertOne(ideaData);
-      res.send(result);
+    const ideavaultCollection = db.collection("ideas");
+
+    app.get("/", (req, res) => {
+      res.send("Server is running");
     });
+
     app.get("/ideas", async (req, res) => {
       const ideas = await ideavaultCollection.find().toArray();
+
       res.send(ideas);
     });
 
-    app.get("/ideas/:id", async (req, res) => {
-      const id = req.params.id;
-      const idea = await ideavaultCollection.findOne({ _id: new ObjectId(id) });
-      res.send(idea);
+    app.post("/ideas", async (req, res) => {
+      try {
+        const result = await ideavaultCollection.insertOne(req.body);
+
+        res.send(result);
+      } catch (error) {
+        console.log(error);
+
+        res.status(500).send(error);
+      }
     });
+
     app.patch("/ideas/:id", async (req, res) => {
       try {
         const id = req.params.id;
-        const updateData = req.body;
 
         const result = await ideavaultCollection.updateOne(
           { _id: new ObjectId(id) },
           {
-            $set: updateData,
+            $set: req.body,
           },
         );
 
         res.send(result);
       } catch (error) {
         console.log(error);
-        res.status(500).send({
-          message: "Failed to update idea",
-        });
-      }
-    });
-    app.get("/trending-ideas", async (req, res) => {
-      try {
-        const trendingIdeas = await ideavaultCollection
-          .find({ isTrending: true })
-          .sort({ createdAt: -1 })
-          .limit(3)
-          .toArray();
 
-        res.send(trendingIdeas);
-      } catch (error) {
-        res.status(500).send({
-          message: "Failed to fetch trending ideas",
-        });
-      }
-    });
-    app.post("/comments", async (req, res) => {
-      try {
-        const commentData = req.body;
-
-        const result = await commentCollection.insertOne(commentData);
-
-        res.send(result);
-      } catch (error) {
-        console.log(error);
-        res.status(500).send({ error: "Failed to post comment" });
-      }
-    });
-    app.get("/comments", async (req, res) => {
-      try {
-        const comments = await commentCollection.find().toArray();
-
-        res.send(comments);
-      } catch (error) {
-        console.log(error);
-
-        res.status(500).send({
-          message: "Failed to get comments",
-        });
+        res.status(500).send(error);
       }
     });
 
-    // await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!",
-    );
-  } finally {
-    // Ensures that the client will close when you finish/error
-    // await client.close();
+    console.log("MongoDB Connected");
+  } catch (error) {
+    console.log(error);
   }
 }
-run().catch(console.dir);
 
-app.get("/", (req, res) => {
-  res.send("Server is running");
-});
+run();
 
 app.listen(port, () => {
-  console.log(`Server is running on ${port}`);
+  console.log(`Server running on ${port}`);
 });

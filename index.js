@@ -41,13 +41,24 @@ async function run() {
       res.send(idea);
     });
     app.patch("/ideas/:id", async (req, res) => {
-      const id = req.params.id;
-      const updateData = req.body;
-      const result = await ideavaultCollection.updateOne(
-        { _id: new ObjectId(id) },
-        { $set: updateData },
-      );
-      res.send(result);
+      try {
+        const id = req.params.id;
+        const updateData = req.body;
+
+        const result = await ideavaultCollection.updateOne(
+          { _id: new ObjectId(id) },
+          {
+            $set: updateData,
+          },
+        );
+
+        res.send(result);
+      } catch (error) {
+        console.log(error);
+        res.status(500).send({
+          message: "Failed to update idea",
+        });
+      }
     });
     app.get("/trending-ideas", async (req, res) => {
       try {
